@@ -6,26 +6,18 @@ pipeline {
 
   }
   stages {
-    stage('Deploying ICN Container') {
+    stage('Setup prefixes and routes') {
       steps {
-        sh 'docker pull icnteam/vhttpproxy:amd64'
-        sh '''docker run --cap-add=NET_ADMIN              \\
-           --device=/dev/vhost-net          \\
-           --device=/dev/net/tun            \\
-           -p 33567:33567/udp               \\
-           -e HICN_LISTENER_PORT=33567      \\
-           -e ORIGIN_ADDRESS=www.google.com \\
-           -e ORIGIN_PORT=80                \\
-           -e CACHE_SIZE=10000              \\
-           -e HICN_MTU=1200                 \\
-           -e FIRST_IPV6_WORD=c001          \\
-           -e HICN_PREFIX=http://httpserver \\
-           -e DEFAULT_CONTENT_LIFETIME=7200 \\
-           -e USE_MANIFEST=true             \\
-           -e UDP_TUNNEL_ENDPOINTS=remote_ip1:remote_port1,remote_ip2:remote_port2 \\
-           -d --name vhttpproxy icnteam/vhttpproxy'''
+        sh 'vppctl hicn punting add prefix c001::/16 intfc <GigabitEthernetb/0/0> $punting_ip'
       }
     }
 
+  }
+  environment {
+    dataset_name = 'SRR5139397_1.fastq.gz'
+    dataset_prefix = ' b001'
+    icn_node_1 = ' 10.10.3.20'
+    icn_node_2 = '10.10.3.10'
+    punting_ip = ''
   }
 }
